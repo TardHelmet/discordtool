@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Server Organization Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #5865f2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .toolbox {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 2px solid #e9ecef;
+            padding: 20px;
+        }
+
+        .toolbox h3 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .channel-creator {
+            margin-bottom: 20px;
+        }
+
+        .channel-creator input, .channel-creator select {
+            width: 100%;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: #5865f2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px 0;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #4752c4;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .current-channels {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .workspace {
+            flex: 1;
+            padding: 20px;
+            background: #36393f;
+            color: white;
+        }
+
+        .workspace h3 {
+            margin-bottom: 20px;
+            color: #dcddde;
+        }
+
+        .server-container {
+            background: #2f3136;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 500px;
+        }
+
+        .category {
+            margin-bottom: 15px;
+            background: #2f3136;
+            border-radius: 5px;
+            min-height: 60px;
+            position: relative;
+        }
+
+        .category-header {
+            background: #4f545c;
+            padding: 10px 15px;
+            border-radius: 5px 5px 0 0;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .category-content {
+            padding: 10px;
+            min-height: 40px;
+            border: 2px dashed transparent;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .channel-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            margin: 2px 0;
+            border-radius: 3px;
+            cursor: move;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+
+        .channel-item:hover {
+            background: #40444b;
+        }
+
+        .channel-text {
+            background: rgba(114, 137, 218, 0.1);
+            border-left: 3px solid #7289da;
+        }
+
+        .channel-voice {
+            background: rgba(67, 181, 129, 0.1);
+            border-left: 3px solid #43b581;
+        }
+
+        .channel-forum {
+            background: rgba(250, 166, 26, 0.1);
+            border-left: 3px solid #faa61a;
+        }
+
+        .channel-icon {
+            margin-right: 8px;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .channel-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            background: #ed4245;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            margin-left: 5px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .channel-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .drag-over {
+            background: rgba(114, 137, 218, 0.2) !important;
+            border: 2px dashed #7289da !important;
+        }
+
+        .export-section {
+            border-top: 1px solid #ddd;
+            padding: 15px 20px;
+            background: #f8f9fa;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .current-channel-item {
+            padding: 5px 10px;
+            margin: 2px 0;
+            background: #e9ecef;
+            border-radius: 3px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .current-channel-item .channel-icon {
+            margin-right: 5px;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .empty-category {
+            text-align: center;
+            color: #72767d;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .controls {
+            margin-bottom: 15px;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Discord Server Organization Tool</h1>
+            <p>Reorganize your Discord server structure with drag & drop</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="toolbox">
+                <h3>Create New Channels</h3>
+                <div class="channel-creator">
+                    <input type="text" id="channelName" placeholder="Channel name">
+                    <select id="channelType">
+                        <option value="text">Text Channel</option>
+                        <option value="voice">Voice Channel</option>
+                        <option value="forum">Forum Channel</option>
+                    </select>
+                    <button class="btn" onclick="createChannel()">Add Channel</button>
+                </div>
+
+                <button class="btn btn-secondary" onclick="createCategory()">+ New Category</button>
+
+                <h3 style="margin-top: 20px;">Current Channels</h3>
+                <div class="current-channels" id="currentChannels">
+                    <!-- Current channels will be populated here -->
+                </div>
+
+                <div class="controls" style="margin-top: 20px;">
+                    <button class="btn" onclick="clearWorkspace()">Clear All</button>
+                    <button class="btn" onclick="loadFromUrl()">Load from URL</button>
+                    <input type="text" class="url-input" id="loadUrl" placeholder="Paste share URL here">
+                </div>
+            </div>
+
+            <div class="workspace">
+                <h3>Server Organization</h3>
+                <div class="server-container" id="serverContainer">
+                    <!-- Server structure will be built here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="export-section">
+            <h3>Export & Share</h3>
+            <div class="export-options">
+                <button class="btn" onclick="generateShareUrl()">Generate Share URL</button>
+                <button class="btn" onclick="exportJSON()">Export JSON</button>
+                <button class="btn" onclick="exportCSV()">Export CSV</button>
+                <button class="btn btn-secondary" onclick="copyToDiscord()">Copy Discord Commands</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Current Discord channels from the images
+        const currentChannels = [
+            // Main categories and channels
+            {name: 'Welcome!', type: 'text'},
+            {name: 'Join Us Live!', type: 'text'},
+            {name: 'right-now', type: 'text'},
+            {name: 'schedule', type: 'text'},
+            {name: 'LIVE', type: 'voice'},
+            {name: 'LIVE (No Mic)', type: 'voice'},
+            {name: 'stream-chat', type: 'text'},
+            {name: 'no-elephants-project', type: 'text'},
+            {name: 'suggestions', type: 'text'},
+            {name: 'qc-stories', type: 'text'},
+            {name: 'our-recordings', type: 'text'},
+            {name: 'Kierkegaard', type: 'voice'},
+            {name: 'brooks chatter', type: 'voice'},
+            {name: 'just-chatting', type: 'text'},
+            {name: 'memeplicity', type: 'text'},
+            {name: 'Fod', type: 'voice'},
+            {name: 'non-english', type: 'text'},
+            {name: 'share-your-work', type: 'text'},
+            {name: 'the-feed', type: 'text'},
+            {name: 'current-events', type: 'text'},
+            {name: 'local-news', type: 'text'},
+            {name: 'e-z', type: 'text'},
+            {name: 'logics', type: 'text'},
+            {name: 'math⊕logic', type: 'text'},
+            {name: 'Ad-Hoc', type: 'voice'},
+            {name: 'start-here', type: 'text'},
+            {name: 'how-to-philo-chat', type: 'text'},
+            {name: 'how-to-philo-forum', type: 'forum'},
+            {name: 'feedback', type: 'text'},
+            {name: 'american-conservatism', type: 'forum'},
+            {name: 'anti-oedipus-2023', type: 'forum'},
+            {name: 'coldness-and-cruelty', type: 'forum'},
+            {name: 'concept-of-dread', type: 'forum'},
+            {name: 'empiricism-and-subjectivity', type: 'forum'},
+            {name: 'manifesto', type: 'forum'},
+            {name: 'nietzsche', type: 'forum'},
+            {name: 'spinoza', type: 'forum'},
+            {name: 'border-optics', type: 'forum'},
+            {name: 'latour', type: 'forum'},
+            {name: 'drug-cartels-do-not-exist', type: 'forum'},
+            {name: 'patreon-chat', type: 'text'},
+            {name: 'patreon-feedback', type: 'text'},
+            {name: 'general-chat', type: 'text'},
+            {name: 'help-me', type: 'text'},
+            {name: 'new-theory', type: 'text'},
+            {name: 'old-theory', type: 'text'},
+            {name: 'amy-theory', type: 'text'},
+            {name: 'the-qc-library', type: 'text'},
+            {name: 'text-requests', type: 'text'},
+            {name: 'i-need', type: 'text'},
+            {name: 'learning-french', type: 'text'},
+            {name: 'qc-journal', type: 'text'},
+            {name: 'start-here', type: 'text'},
+            {name: 'applications', type: 'text'}
+        ];
+
+        let serverStructure = [];
+        let draggedElement = null;
+        let categoryCounter = 1;
+
+        function initializeCurrentChannels() {
+            const container = document.getElementById('currentChannels');
+            container.innerHTML = '';
+            
+            currentChannels.forEach((channel, index) => {
+                const item = document.createElement('div');
+                item.className = 'current-channel-item';
+                item.draggable = true;
+                item.dataset.channelData = JSON.stringify(channel);
+                
+                const icon = getChannelIcon(channel.type);
+                item.innerHTML = `
+                    <span class="channel-icon">${icon}</span>
+                    <span>${channel.name}</span>
+                `;
+                
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                
+                container.appendChild(item);
+            });
+        }
+
+        function getChannelIcon(type) {
+            switch(type) {
+                case 'text': return '#';
+                case 'voice': return '🔊';
+                case 'forum': return '💬';
+                default: return '#';
+            }
+        }
+
+        function createChannel() {
+            const name = document.getElementById('channelName').value.trim();
+            const type = document.getElementById('channelType').value;
+            
+            if (!name) {
+                alert('Please enter a channel name');
+                return;
+            }
+            
+            const channel = { name, type, id: generateId() };
+            addChannelToWorkspace(channel);
+            
+            document.getElementById('channelName').value = '';
+        }
+
+        function createCategory() {
+            const category = {
+                id: generateId(),
+                name: `Category ${categoryCounter++}`,
+                type: 'category',
+                channels: []
+            };
+            
+            serverStructure.push(category);
+            renderServerStructure();
+        }
+
+        function addChannelToWorkspace(channel) {
+            // Add to first category if exists, or create a new category
+            if (serverStructure.length === 0) {
+                createCategory();
+            }
+            
+            serverStructure[serverStructure.length - 1].channels.push(channel);
+            renderServerStructure();
+        }
+
+        function renderServerStructure() {
+            const container = document.getElementById('serverContainer');
+            container.innerHTML = '';
+            
+            if (serverStructure.length === 0) {
+                container.innerHTML = '<div class="empty-category">Drag channels here or create a new category</div>';
+                return;
+            }
+            
+            serverStructure.forEach((category, categoryIndex) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.dataset.categoryIndex = categoryIndex;
+                
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.innerHTML = `
+                    <span contenteditable="true" onblur="updateCategoryName(${categoryIndex}, this.textContent)">${category.name}</span>
+                    <button class="delete-btn" onclick="deleteCategory(${categoryIndex})">×</button>
+                `;
+                
+                const content = document.createElement('div');
+                content.className = 'category-content';
+                content.addEventListener('dragover', handleDragOver);
+                content.addEventListener('drop', (e) => handleDrop(e, categoryIndex));
+                
+                if (category.channels.length === 0) {
+                    content.innerHTML = '<div class="empty-category">Drop channels here</div>';
+                } else {
+                    category.channels.forEach((channel, channelIndex) => {
+                        const channelDiv = document.createElement('div');
+                        channelDiv.className = `channel-item channel-${channel.type}`;
+                        channelDiv.draggable = true;
+                        channelDiv.dataset.categoryIndex = categoryIndex;
+                        channelDiv.dataset.channelIndex = channelIndex;
+                        
+                        const icon = getChannelIcon(channel.type);
+                        channelDiv.innerHTML = `
+                            <span class="channel-icon">${icon}</span>
+                            <span class="channel-name" contenteditable="true" onblur="updateChannelName(${categoryIndex}, ${channelIndex}, this.textContent)">${channel.name}</span>
+                            <button class="delete-btn" onclick="deleteChannel(${categoryIndex}, ${channelIndex})">×</button>
+                        `;
+                        
+                        channelDiv.addEventListener('dragstart', handleChannelDragStart);
+                        channelDiv.addEventListener('dragend', handleDragEnd);
+                        
+                        content.appendChild(channelDiv);
+                    });
+                }
+                
+                categoryDiv.appendChild(header);
+                categoryDiv.appendChild(content);
+                container.appendChild(categoryDiv);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        }
+
+        function handleChannelDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedElement = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDrop(e, categoryIndex) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            if (!draggedElement) return;
+            
+            if (draggedElement.classList.contains('current-channel-item')) {
+                // Adding from current channels
+                const channelData = JSON.parse(draggedElement.dataset.channelData);
+                channelData.id = generateId();
+                serverStructure[categoryIndex].channels.push(channelData);
+            } else if (draggedElement.classList.contains('channel-item')) {
+                // Moving existing channel
+                const sourceCategoryIndex = parseInt(draggedElement.dataset.categoryIndex);
+                const sourceChannelIndex = parseInt(draggedElement.dataset.channelIndex);
+                
+                if (sourceCategoryIndex !== categoryIndex) {
+                    const channel = serverStructure[sourceCategoryIndex].channels.splice(sourceChannelIndex, 1)[0];
+                    serverStructure[categoryIndex].channels.push(channel);
+                }
+            }
+            
+            renderServerStructure();
+        }
+
+        function updateCategoryName(categoryIndex, newName) {
+            serverStructure[categoryIndex].name = newName.trim() || `Category ${categoryIndex + 1}`;
+        }
+
+        function updateChannelName(categoryIndex, channelIndex, newName) {
+            serverStructure[categoryIndex].channels[channelIndex].name = newName.trim() || 'unnamed-channel';
+        }
+
+        function deleteCategory(categoryIndex) {
+            if (confirm('Delete this category and all its channels?')) {
+                serverStructure.splice(categoryIndex, 1);
+                renderServerStructure();
+            }
+        }
+
+        function deleteChannel(categoryIndex, channelIndex) {
+            serverStructure[categoryIndex].channels.splice(channelIndex, 1);
+            renderServerStructure();
+        }
+
+        function generateId() {
+            return Math.random().toString(36).substr(2, 9);
+        }
+
+        function clearWorkspace() {
+            if (confirm('Clear all categories and channels?')) {
+                serverStructure = [];
+                renderServerStructure();
+            }
+        }
+
+        function generateShareUrl() {
+            const data = encodeURIComponent(JSON.stringify(serverStructure));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?data=${data}`;
+            
+            navigator.clipboard.then ? navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('Share URL copied to clipboard!');
+            }).catch(() => {
+                prompt('Copy this share URL:', shareUrl);
+            }) : prompt('Copy this share URL:', shareUrl);
+        }
+
+        function loadFromUrl() {
+            const url = document.getElementById('loadUrl').value.trim();
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+            
+            try {
+                const urlParams = new URLSearchParams(url.split('?')[1]);
+                const data = urlParams.get('data');
+                if (data) {
+                    serverStructure = JSON.parse(decodeURIComponent(data));
+                    renderServerStructure();
+                    alert('Configuration loaded successfully!');
+                } else {
+                    alert('No data found in URL');
+                }
+            } catch (error) {
+                alert('Error loading from URL: ' + error.message);
+            }
+        }
+
+        function exportJSON() {
+            const data = JSON.stringify(serverStructure, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'discord-server-structure.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportCSV() {
+            let csv = 'Category,Channel Name,Channel Type\n';
+            
+            serverStructure.forEach(category => {
+                category.channels.forEach(channel => {
+                    csv += `"${category.name}","${channel.name}","${channel.type}"\n`;
+                });
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'discord-server-structure.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToDiscord() {
+            let commands = '# Discord Server Setup Commands\n\n';
+            
+            serverStructure.forEach(category => {
+                commands += `## Create Category: ${category.name}\n`;
+                commands += `Right-click server → Create Category → "${category.name}"\n\n`;
+                
+                category.channels.forEach(channel => {
+                    const channelType = channel.type === 'forum' ? 'Forum' : 
+                                      channel.type === 'voice' ? 'Voice' : 'Text';
+                    commands += `- Create ${channelType} Channel: "${channel.name}"\n`;
+                });
+                commands += '\n';
+            });
+            
+            navigator.clipboard.then ? navigator.clipboard.writeText(commands).then(() => {
+                alert('Discord setup commands copied to clipboard!');
+            }).catch(() => {
+                console.log(commands);
+                alert('Commands logged to console (clipboard not available)');
+            }) : alert('Commands logged to console');
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCurrentChannels();
+            
+            // Check if there's data in the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const data = urlParams.get('data');
+            if (data) {
+                try {
+                    serverStructure = JSON.parse(decodeURIComponent(data));
+                    renderServerStructure();
+                } catch (error) {
+                    console.error('Error loading data from URL:', error);
+                }
+            } else {
+                renderServerStructure();
+            }
+        });
+
+        // Handle drag over for the entire server container
+        document.getElementById('serverContainer').addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(e.currentTarget, e.clientY);
+            e.currentTarget.classList.add('drag-over');
+        });
+
+        document.getElementById('serverContainer').addEventListener('dragleave', (e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) {
+                e.currentTarget.classList.remove('drag-over');
+            }
+        });
+
+        document.getElementById('serverContainer').addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            // If dropping on empty workspace, create new category
+            if (serverStructure.length === 0 && draggedElement && draggedElement.classList.contains('current-channel-item')) {
+                createCategory();
+                const channelData = JSON.parse(draggedElement.dataset.channelData);
+                channelData.id = generateId();
+                serverStructure[0].channels.push(channelData);
+                renderServerStructure();
+            }
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.category:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+    </script>
+</body>
+</html>
